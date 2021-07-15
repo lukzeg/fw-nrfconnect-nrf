@@ -27,6 +27,10 @@ def header_prepare(in_file, out_file, out_wrap_file):
 
     content = cpp_comments_pattern.sub(r"", content)
 
+    content = content.replace("\t", " " * 4)  # replace tabs with 4 space style
+    while(content.count("\n\n") > 0):
+        content = content.replace("\n\n","\n")  # remove empty lines, which break regex
+
     # remove inline syscalls
     static_inline_pattern = re.compile(
         r'(?:__deprecated\s+)?(?:static\s+inline\s+|inline\s+static\s+|static\s+ALWAYS_INLINE\s+|__STATIC_INLINE\s+)'
@@ -56,6 +60,8 @@ def header_prepare(in_file, out_file, out_wrap_file):
         r'extern\s+((?:\w+[*\s]+)+\w+?\(.*?\);)',
         re.M | re.S)
     content = prefixed_func_decl_pattern.sub(r"\1", content)
+
+    content = static_inline_pattern.sub(r"\1;", content)
 
     with open(out_file, 'w') as f_out:
         f_out.write(content)
